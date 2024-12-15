@@ -10,6 +10,7 @@ Features:
 Installation:
 1. Copy the `pixels_dice` folder to your Home Assistant `custom_components` directory:
 
+```
    custom_components/
    └── pixels_dice/
        ├── __init__.py
@@ -19,6 +20,7 @@ Installation:
        ├── config_flow.py
        ├── strings.json
        ├── webhook.py
+```
 
 2. Restart Home Assistant.
 3. Go to "Settings > Devices & Services > Integrations" and click the "Add Integration" button.
@@ -30,7 +32,7 @@ The integration uses a webhook to receive data from your Pixel Dice. Configure y
 http://<your_home_assistant_url>/api/webhook/pixels_dice
 
 Ensure the data sent is in the following JSON format:
-
+```json
 {
   "pixelId": 12345678,
   "pixelName": "Pixels D20",
@@ -40,6 +42,7 @@ Ensure the data sent is in the following JSON format:
   "colorway": "onyxBlack",
   "batteryLevel": 0.5
 }
+```
 
 Entity Attributes:
 - State: The latest roll result (face_value).
@@ -50,4 +53,4 @@ Entity Attributes:
   - battery_level: Remaining battery percentage.
 
 Issues:
-Report issues at: https://github.com/thegogz/pixels_dice/issues
+Report issues at: [Github](https://github.com/thegogz/pixels_dice/issues)
