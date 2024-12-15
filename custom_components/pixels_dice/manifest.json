@@ -1,0 +1,10 @@
+{
+    "domain": "pixels_dice",
+    "name": "Pixels Dice",
+    "version": "1.0.0",
+    "documentation": "https://github.com/thegogz/pixels_dice",
+    "requirements": [],
+    "dependencies": [],
+    "codeowners": ["@thegogz"]
+  }
+  

@@ -1,0 +1,13 @@
+{
+  "title": "Pixels Dice",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Pixels Dice",
+        "description": "This integration will set up Pixels Dice webhook handling.",
+        "data": {}
+      }
+    }
+  }
+}
+  
