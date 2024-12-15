@@ -1,7 +1,10 @@
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers import config_validation as cv
 from .const import DOMAIN
 from .webhook import async_setup_webhook
+
+CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
 
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the Pixels Dice integration."""
