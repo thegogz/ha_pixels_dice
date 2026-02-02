@@ -4,9 +4,12 @@
     "step": {
       "user": {
         "title": "Set up Pixels Dice",
-        "description": "This integration will set up Pixels Dice webhook handling.",
+        "description": "This integration will set up webhook handling for Pixels smart dice. After setup, your dice can send roll data to Home Assistant.",
         "data": {}
       }
+    },
+    "abort": {
+      "single_instance_allowed": "Only a single instance of Pixels Dice is allowed."
     }
   }
 }
