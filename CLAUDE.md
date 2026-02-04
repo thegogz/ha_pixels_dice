@@ -6,25 +6,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Home Assistant custom integration for Pixels smart dice. Dice send roll data via HTTP webhook to Home Assistant, which creates device/sensor entities for each die automatically. Written in Python, async-first, targeting HA 2026.2+.
 
-**Version**: 1.0.0 | **Quality Level**: Bronze (estimated) | **IoT Class**: local_push (no polling)
+**Version**: 1.0.0 | **Quality Level**: Bronze | **IoT Class**: local_push (no polling)
 
 ## Validation & CI
 
-There is no local build, lint, or test suite. The only CI step is hassfest validation via GitHub Actions:
-
 ```bash
+# Run tests (requires Linux/WSL — pytest-homeassistant-custom-component depends on fcntl)
+pip install -r requirements_test.txt
+pytest tests/ -v
+
 # Run hassfest locally (requires Docker)
 docker run --rm -v $(pwd):/github/workspace ghcr.io/home-assistant/hassfest
 ```
 
-The GitHub Actions workflow (`.github/workflows/main.yml`) runs hassfest on every push, PR, and daily at midnight UTC.
-
-Manual webhook testing:
-```bash
-curl -X POST http://homeassistant.local:8123/api/webhook/pixels_dice \
-  -H "Content-Type: application/json" \
-  -d '{"pixelId": 12345678, "pixelName": "Test D20", "faceValue": 20, "ledCount": 20, "dieType": "d20", "colorway": "onyxBlack", "batteryLevel": 0.85}'
-```
+The GitHub Actions workflow (`.github/workflows/main.yml`) runs both hassfest and pytest on every push, PR, and daily at midnight UTC. Tests cannot run natively on Windows due to HA's dependency on `fcntl`.
 
 ## Architecture
 
@@ -48,6 +43,15 @@ hass.data[DOMAIN][entry_id] = {
 }
 ```
 
+## Tests
+
+Tests live in `tests/` and use `pytest-homeassistant-custom-component` for HA fixtures.
+
+- `conftest.py` - Shared fixtures: `auto_enable_custom_integrations`, `sample_webhook_payload`, `minimal_webhook_payload`
+- `test_config_flow.py` - Full config flow coverage (form display, entry creation, duplicate abort)
+- `test_init.py` - Setup/unload lifecycle tests
+- `test_webhook.py` - Webhook validation: valid payload, updates, invalid JSON, missing fields, type validation, defaults
+
 ## Conventions
 
 - All modules use `from __future__ import annotations` and full type hints
@@ -58,11 +62,26 @@ hass.data[DOMAIN][entry_id] = {
 
 ## Deployment
 
-Shell scripts in `scripts/` deploy via SSH to a Home Assistant Docker instance. Not relevant for development, only for the maintainer's home lab setup.
+Deploy scripts live in `scripts/` and require a `scripts/.env` file (copy from `.env.example`). The NAS runs HA Container (not HA OS), so restarts use `docker restart` — the `ha` CLI is not available.
+
+```bash
+# Deploy to HA and restart (interactive — prompts for restart)
+bash scripts/deploy-direct.sh
+
+# Manual restart only
+ssh $HA_USER@$HA_HOST "sudo $DOCKER_PATH restart $DOCKER_CONTAINER"
+
+# Manual webhook test
+curl -X POST http://gogznas.local:8123/api/webhook/pixels_dice \
+  -H "Content-Type: application/json" \
+  -d '{"pixelId": 12345678, "pixelName": "Test D20", "faceValue": 20, "ledCount": 20, "dieType": "d20", "colorway": "onyxBlack", "batteryLevel": 0.85}'
+```
+
+After any significant change to `custom_components/pixels_dice/`, run `deploy-direct.sh` and verify the integration loads correctly before committing.
 
 ## Roadmap (from TODO.md)
 
-1. **[HIGH]** Code review for HA quality scale standards, add docstrings and unit tests
+1. ~~**[HIGH]** Code review for HA quality scale standards, add docstrings and unit tests~~ (Done)
 2. **[MEDIUM]** Dice roll automation blueprints
 3. **[MEDIUM]** Battery status as separate sensor entity with low-battery alerts
 4. **[LOW]** HACS publication preparation

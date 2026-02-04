@@ -9,7 +9,8 @@
       }
     },
     "abort": {
-      "single_instance_allowed": "Only a single instance of Pixels Dice is allowed."
+      "single_instance_allowed": "Only a single instance of Pixels Dice is allowed.",
+      "already_configured": "Pixels Dice is already configured."
     }
   }
 }

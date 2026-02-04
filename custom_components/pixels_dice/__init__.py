@@ -16,7 +16,15 @@ PLATFORMS: list[Platform] = [Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Pixels Dice from a config entry."""
+    """Set up Pixels Dice from a config entry.
+
+    Args:
+        hass: The Home Assistant instance.
+        entry: The config entry being set up.
+
+    Returns:
+        True if setup was successful.
+    """
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {}
 
@@ -26,12 +34,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Forward setup to sensor platform
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    _LOGGER.info("Pixels Dice integration setup complete")
+    _LOGGER.info("Integration setup complete for entry %s", entry.entry_id)
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry."""
+    """Unload a config entry.
+
+    Args:
+        hass: The Home Assistant instance.
+        entry: The config entry being unloaded.
+
+    Returns:
+        True if unload was successful.
+    """
     # Unload webhook
     await async_unload_webhook(hass, entry.entry_id)
 

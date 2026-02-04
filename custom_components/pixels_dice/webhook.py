@@ -1,6 +1,7 @@
 """Webhook support for Pixels Dice integration."""
 from __future__ import annotations
 
+import json
 import logging
 
 from aiohttp import web
@@ -20,10 +21,19 @@ _LOGGER = logging.getLogger(__name__)
 async def async_handle_webhook(
     hass: HomeAssistant, webhook_id: str, request: web.Request
 ) -> web.Response:
-    """Handle incoming webhook requests from Pixels Dice."""
+    """Handle incoming webhook requests from Pixels Dice.
+
+    Args:
+        hass: The Home Assistant instance.
+        webhook_id: The registered webhook identifier.
+        request: The incoming HTTP request.
+
+    Returns:
+        An HTTP response indicating success or failure.
+    """
     try:
         data = await request.json()
-    except ValueError:
+    except json.JSONDecodeError:
         _LOGGER.warning("Received webhook with invalid JSON")
         return web.Response(text="Invalid JSON", status=400)
 
@@ -44,14 +54,33 @@ async def async_handle_webhook(
         _LOGGER.warning("Received webhook missing critical data (faceValue or ledCount)")
         return web.Response(text="Missing critical data", status=400)
 
+    # Validate numeric types
+    if not isinstance(face_value, (int, float)):
+        _LOGGER.warning("faceValue must be numeric, got %s", type(face_value).__name__)
+        return web.Response(text="faceValue must be numeric", status=400)
+    if not isinstance(led_count, (int, float)):
+        _LOGGER.warning("ledCount must be numeric, got %s", type(led_count).__name__)
+        return web.Response(text="ledCount must be numeric", status=400)
+    if not isinstance(battery_level, (int, float)):
+        _LOGGER.warning(
+            "batteryLevel must be numeric, got %s", type(battery_level).__name__
+        )
+        return web.Response(text="batteryLevel must be numeric", status=400)
+
     # Get the first config entry (we only support one instance)
     entries = hass.config_entries.async_entries(DOMAIN)
     if not entries:
-        _LOGGER.error("No config entry found for Pixels Dice")
+        _LOGGER.error("No config entry found")
         return web.Response(text="Integration not configured", status=500)
 
     entry = entries[0]
     entity_id_prefix = f"{DOMAIN}_{pixel_id}"
+
+    # Guard access to hass.data
+    entry_data = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+    if entry_data is None:
+        _LOGGER.error("Integration data not initialized for entry %s", entry.entry_id)
+        return web.Response(text="Internal error", status=500)
 
     # Check if entity already exists
     registry = er.async_get(hass)
@@ -60,8 +89,7 @@ async def async_handle_webhook(
     existing_entity = None
     for entity_entry in entity_entries:
         if entity_entry.unique_id == entity_id_prefix:
-            # Found existing entity, get it from hass.data
-            entities = hass.data[DOMAIN].get(entry.entry_id, {}).get("entities", {})
+            entities = entry_data.get("entities", {})
             existing_entity = entities.get(pixel_id)
             break
 
@@ -73,19 +101,19 @@ async def async_handle_webhook(
         # Create new entity
         _LOGGER.info("Creating new dice entity for pixel_id %s", pixel_id)
         new_entity = PixelsDiceEntity(
-            pixel_id, pixel_name, led_count, die_type, colorway, battery_level
+            pixel_id,
+            pixel_name,
+            led_count,
+            die_type,
+            colorway,
+            battery_level,
+            initial_value=face_value,
         )
-        # Set initial state (don't write to HA yet - entity not added)
-        new_entity._attr_native_value = face_value
 
-        # Store entity and add it
-        if "entities" not in hass.data[DOMAIN][entry.entry_id]:
-            hass.data[DOMAIN][entry.entry_id]["entities"] = {}
-
-        hass.data[DOMAIN][entry.entry_id]["entities"][pixel_id] = new_entity
+        entry_data.setdefault("entities", {})[pixel_id] = new_entity
 
         # Add entity using the callback stored during setup
-        add_entities = hass.data[DOMAIN][entry.entry_id].get("add_entities")
+        add_entities = entry_data.get("add_entities")
         if add_entities:
             add_entities([new_entity])
         else:
@@ -96,11 +124,14 @@ async def async_handle_webhook(
 
 
 async def async_setup_webhook(hass: HomeAssistant, entry_id: str) -> None:
-    """Set up the webhook for a config entry."""
-    # Use a fixed webhook ID so users always know the URL
+    """Set up the webhook for a config entry.
+
+    Args:
+        hass: The Home Assistant instance.
+        entry_id: The config entry ID to associate with the webhook.
+    """
     webhook_id = DOMAIN
 
-    # Only register if not already registered (handles multiple config entries)
     if webhook_id not in hass.data.get("webhook", {}):
         async_register_webhook(
             hass, DOMAIN, "Pixels Dice", webhook_id, async_handle_webhook
@@ -109,8 +140,12 @@ async def async_setup_webhook(hass: HomeAssistant, entry_id: str) -> None:
 
 
 async def async_unload_webhook(hass: HomeAssistant, entry_id: str) -> None:
-    """Unload the webhook for a config entry."""
-    # Only unregister if this is the last config entry
+    """Unload the webhook for a config entry.
+
+    Args:
+        hass: The Home Assistant instance.
+        entry_id: The config entry ID being unloaded.
+    """
     entries = hass.config_entries.async_entries(DOMAIN)
     if len(entries) <= 1:
         webhook_id = DOMAIN

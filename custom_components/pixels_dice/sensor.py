@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -18,9 +17,18 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
-    """Set up Pixels Dice sensors from a config entry."""
-    # Store the add_entities callback in hass.data so webhook can use it
+    """Set up Pixels Dice sensors from a config entry.
+
+    Args:
+        hass: The Home Assistant instance.
+        entry: The config entry being set up.
+        async_add_entities: Callback to register new entities.
+
+    Returns:
+        True when setup is successful.
+    """
+    hass.data[DOMAIN].setdefault(entry.entry_id, {})
     hass.data[DOMAIN][entry.entry_id]["add_entities"] = async_add_entities
 
-    _LOGGER.info("Pixels Dice sensor platform setup complete")
+    _LOGGER.info("Sensor platform setup complete for entry %s", entry.entry_id)
     return True
