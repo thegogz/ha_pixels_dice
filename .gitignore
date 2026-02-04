@@ -1,6 +1,9 @@
 # Deployment secrets
 scripts/.env
 
+# Claude Code
+.claude/
+
 # Python
 __pycache__/
 *.py[cod]
