@@ -13,9 +13,6 @@ __pycache__/
 *.swp
 *.swo
 
-# AI
-CLAUDE.md
-
 # OS
 .DS_Store
 Thumbs.db
