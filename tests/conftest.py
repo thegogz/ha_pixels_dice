@@ -1,28 +1,11 @@
 """Shared fixtures for Pixels Dice tests."""
 import pytest
 
-from homeassistant.core import HomeAssistant
-from homeassistant.setup import async_setup_component
-
 
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations):
     """Enable custom integrations for all tests."""
     yield
-
-
-@pytest.fixture
-async def hass_with_http(hass: HomeAssistant):
-    """Set up hass with HTTP and webhook components for webhook testing.
-
-    Handles proper cleanup to avoid thread leakage.
-    """
-    await async_setup_component(hass, "http", {})
-    await async_setup_component(hass, "webhook", {})
-    yield hass
-    # Stop HTTP server to clean up threads
-    if hass.http is not None:
-        await hass.http.stop()
 
 
 @pytest.fixture
