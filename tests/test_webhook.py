@@ -1,5 +1,6 @@
 """Tests for the Pixels Dice webhook handler."""
 from homeassistant.core import HomeAssistant
+from homeassistant.setup import async_setup_component
 
 from custom_components.pixels_dice.const import DOMAIN
 
@@ -10,7 +11,12 @@ WEBHOOK_URL = "/api/webhook/pixels_dice"
 
 
 async def _setup_integration(hass: HomeAssistant) -> MockConfigEntry:
-    """Set up the integration and return the config entry."""
+    """Set up the integration and return the config entry.
+
+    Also sets up HTTP and webhook components required for webhook testing.
+    """
+    await async_setup_component(hass, "http", {})
+    await async_setup_component(hass, "webhook", {})
     entry = MockConfigEntry(domain=DOMAIN, data={})
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
