@@ -4,8 +4,17 @@
     "step": {
       "user": {
         "title": "Set up Pixels Dice",
-        "description": "This integration will set up webhook handling for Pixels smart dice. After setup, your dice can send roll data to Home Assistant.",
-        "data": {}
+        "description": "Configure the webhook endpoint for your Pixels smart dice.",
+        "data": {
+          "webhook_id": "Webhook ID"
+        },
+        "data_description": {
+          "webhook_id": "The webhook endpoint identifier. Change this only if you need a custom URL."
+        }
+      },
+      "confirm": {
+        "title": "Webhook Setup Instructions",
+        "description": "Your Pixels dice webhook is ready!\n\n**Webhook URL:**\n`{webhook_url}`\n\nConfigure your Pixels dice to send roll data to this URL. Each die will automatically appear as a sensor in Home Assistant when it sends its first roll.\n\nClick **Submit** to complete the setup."
       }
     },
     "abort": {
@@ -14,4 +23,3 @@
     }
   }
 }
-  

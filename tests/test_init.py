@@ -2,14 +2,17 @@
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 
-from custom_components.pixels_dice.const import DOMAIN
+from custom_components.pixels_dice.const import DOMAIN, CONF_WEBHOOK_ID, DEFAULT_WEBHOOK_ID
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 
 async def test_setup_entry(hass: HomeAssistant) -> None:
     """Test that async_setup_entry loads and populates hass.data."""
-    entry = MockConfigEntry(domain=DOMAIN, data={})
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_WEBHOOK_ID: DEFAULT_WEBHOOK_ID},
+    )
     entry.add_to_hass(hass)
 
     await hass.config_entries.async_setup(entry.entry_id)
@@ -20,9 +23,23 @@ async def test_setup_entry(hass: HomeAssistant) -> None:
     assert entry.entry_id in hass.data[DOMAIN]
 
 
+async def test_setup_entry_with_legacy_config(hass: HomeAssistant) -> None:
+    """Test that entries without webhook_id (pre-upgrade) still load."""
+    entry = MockConfigEntry(domain=DOMAIN, data={})
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert entry.state is ConfigEntryState.LOADED
+
+
 async def test_unload_entry(hass: HomeAssistant) -> None:
     """Test that async_unload_entry cleans up hass.data."""
-    entry = MockConfigEntry(domain=DOMAIN, data={})
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_WEBHOOK_ID: DEFAULT_WEBHOOK_ID},
+    )
     entry.add_to_hass(hass)
 
     await hass.config_entries.async_setup(entry.entry_id)

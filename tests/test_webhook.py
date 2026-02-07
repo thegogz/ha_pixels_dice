@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 from homeassistant.core import HomeAssistant
 
-from custom_components.pixels_dice.const import DOMAIN
+from custom_components.pixels_dice.const import DOMAIN, CONF_WEBHOOK_ID, DEFAULT_WEBHOOK_ID
 from custom_components.pixels_dice.webhook import async_handle_webhook
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -41,7 +41,10 @@ async def _setup_integration(hass: HomeAssistant) -> MockConfigEntry:
     Returns:
         The created MockConfigEntry.
     """
-    entry = MockConfigEntry(domain=DOMAIN, data={})
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_WEBHOOK_ID: DEFAULT_WEBHOOK_ID},
+    )
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()

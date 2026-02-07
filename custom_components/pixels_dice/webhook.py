@@ -12,7 +12,7 @@ from homeassistant.components.webhook import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_WEBHOOK_ID, DEFAULT_WEBHOOK_ID
 from .entity import PixelsDiceEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -123,15 +123,14 @@ async def async_handle_webhook(
     return web.Response(text="Success", status=200)
 
 
-async def async_setup_webhook(hass: HomeAssistant, entry_id: str) -> None:
+async def async_setup_webhook(hass: HomeAssistant, entry_id: str, webhook_id: str) -> None:
     """Set up the webhook for a config entry.
 
     Args:
         hass: The Home Assistant instance.
         entry_id: The config entry ID to associate with the webhook.
+        webhook_id: The webhook identifier to register.
     """
-    webhook_id = DOMAIN
-
     if webhook_id not in hass.data.get("webhook", {}):
         async_register_webhook(
             hass, DOMAIN, "Pixels Dice", webhook_id, async_handle_webhook
@@ -139,15 +138,15 @@ async def async_setup_webhook(hass: HomeAssistant, entry_id: str) -> None:
         _LOGGER.info("Registered webhook at: /api/webhook/%s", webhook_id)
 
 
-async def async_unload_webhook(hass: HomeAssistant, entry_id: str) -> None:
+async def async_unload_webhook(hass: HomeAssistant, entry_id: str, webhook_id: str) -> None:
     """Unload the webhook for a config entry.
 
     Args:
         hass: The Home Assistant instance.
         entry_id: The config entry ID being unloaded.
+        webhook_id: The webhook identifier to unregister.
     """
     entries = hass.config_entries.async_entries(DOMAIN)
     if len(entries) <= 1:
-        webhook_id = DOMAIN
         async_unregister_webhook(hass, webhook_id)
         _LOGGER.info("Unregistered webhook with ID: %s", webhook_id)

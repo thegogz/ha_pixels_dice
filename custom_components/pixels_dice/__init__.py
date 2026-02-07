@@ -7,7 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_WEBHOOK_ID, DEFAULT_WEBHOOK_ID
 from .webhook import async_setup_webhook, async_unload_webhook
 
 _LOGGER = logging.getLogger(__name__)
@@ -28,8 +28,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {}
 
+    # Get webhook ID from config (with fallback for existing entries)
+    webhook_id = entry.data.get(CONF_WEBHOOK_ID, DEFAULT_WEBHOOK_ID)
+
     # Set up webhook for this config entry
-    await async_setup_webhook(hass, entry.entry_id)
+    await async_setup_webhook(hass, entry.entry_id, webhook_id)
 
     # Forward setup to sensor platform
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -48,8 +51,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     Returns:
         True if unload was successful.
     """
+    # Get webhook ID from config (with fallback for existing entries)
+    webhook_id = entry.data.get(CONF_WEBHOOK_ID, DEFAULT_WEBHOOK_ID)
+
     # Unload webhook
-    await async_unload_webhook(hass, entry.entry_id)
+    await async_unload_webhook(hass, entry.entry_id, webhook_id)
 
     # Unload platforms
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
